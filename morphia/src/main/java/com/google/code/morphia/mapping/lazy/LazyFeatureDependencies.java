@@ -28,13 +28,14 @@ public final class LazyFeatureDependencies {
     if (fulFilled != null) {
       return fulFilled;
     }
-    try {
-      fulFilled = Class.forName("net.sf.cglib.proxy.Enhancer") != null && Class.forName("com.thoughtworks.proxy.toys.hotswap.HotSwapping")
-        != null;
-    } catch (ClassNotFoundException e) {
-      fulFilled = false;
-    }
-    return fulFilled;
+//    try {
+//      fulFilled = Class.forName("net.sf.cglib.proxy.Enhancer") != null && Class.forName("com.thoughtworks.proxy.toys.hotswap.HotSwapping")
+//        != null;
+//    } catch (ClassNotFoundException e) {
+//      fulFilled = false;
+//    }
+//    return fulFilled;
+    return false;
   }
 
   public static LazyProxyFactory createDefaultProxyFactory() {
