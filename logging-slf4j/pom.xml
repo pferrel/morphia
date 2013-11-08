@@ -2,9 +2,9 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-    <groupId>com.google.code.morphia</groupId>
+    <groupId>org.mongodb.morphia</groupId>
     <artifactId>morphia-parent</artifactId>
-		<version>0.104-SNAPSHOT</version>
+		<version>0.106-SNAPSHOT</version>
 		<relativePath>../</relativePath>
 	</parent>
 
@@ -14,7 +14,7 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>com.google.code.morphia</groupId>
+			<groupId>org.mongodb.morphia</groupId>
 			<artifactId>morphia</artifactId>
 			<version>${project.version}</version>
 		</dependency>
@@ -22,12 +22,12 @@
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-api</artifactId>
-    </dependency>
+        </dependency>
 
 		<dependency>
 			<groupId>org.slf4j</groupId>
 			<artifactId>slf4j-simple</artifactId>
-      <scope>test</scope>
+            <scope>test</scope>
 		</dependency>
 
 	</dependencies>
