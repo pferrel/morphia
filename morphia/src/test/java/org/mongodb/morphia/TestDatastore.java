@@ -24,6 +24,7 @@ import com.mongodb.DBObject;
 import com.mongodb.LazyDBDecoder;
 import com.mongodb.LazyWriteableDBDecoder;
 import com.mongodb.ReadPreference;
+import com.mongodb.ReplicaSetStatus;
 import org.bson.types.ObjectId;
 import org.junit.Test;
 import org.mongodb.morphia.annotations.Entity;
@@ -34,6 +35,8 @@ import org.mongodb.morphia.annotations.PostPersist;
 import org.mongodb.morphia.annotations.PreLoad;
 import org.mongodb.morphia.annotations.PrePersist;
 import org.mongodb.morphia.annotations.Transient;
+import org.mongodb.morphia.logging.Logr;
+import org.mongodb.morphia.logging.MorphiaLoggerFactory;
 import org.mongodb.morphia.mapping.Mapper;
 import org.mongodb.morphia.query.UpdateException;
 import org.mongodb.morphia.testmodel.Address;
@@ -55,6 +58,7 @@ import static org.junit.Assert.assertTrue;
  * @author Scott Hernandez
  */
 public class TestDatastore extends TestBase {
+    private static final Logr LOG = MorphiaLoggerFactory.get(TestDatastore.class);
 
     @Entity("facebook_users")
     public static class FacebookUser {
@@ -208,7 +212,7 @@ public class TestDatastore extends TestBase {
         private List<Key<FacebookUser>> users;
         private Key<Rectangle> rect;
 
-        protected KeysKeysKeys() {
+        private KeysKeysKeys() {
         }
 
         public KeysKeysKeys(final Key<Rectangle> rectKey, final List<Key<FacebookUser>> users) {
@@ -245,7 +249,7 @@ public class TestDatastore extends TestBase {
 
         try {
             final LifecycleTestObj life1 = new LifecycleTestObj();
-            ((DatastoreImpl) getDs()).getMapper().addMappedClass(LifecycleTestObj.class);
+            getMorphia().getMapper().addMappedClass(LifecycleTestObj.class);
             getDs().save(life1);
             assertTrue(life1.prePersist);
             assertTrue(life1.prePersistWithParam);
@@ -275,7 +279,7 @@ public class TestDatastore extends TestBase {
 
         try {
             final LifecycleTestObj life1 = new LifecycleTestObj();
-            ((DatastoreImpl) getDs()).getMapper().addMappedClass(LifecycleTestObj.class);
+            getMorphia().getMapper().addMappedClass(LifecycleTestObj.class);
             getDs().save(life1);
             assertTrue(LifecycleListener.prePersist);
             assertTrue(LifecycleListener.prePersistWithEntity);
@@ -315,18 +319,25 @@ public class TestDatastore extends TestBase {
 
     @Test
     public void testExists() throws Exception {
-        final Key<FacebookUser> k = getDs().save(new FacebookUser(1, "user 1"));
+        int id = 10000;
+        final Key<FacebookUser> k = getDs().save(new FacebookUser(id, "user 1"));
         assertEquals(1, getDs().getCount(FacebookUser.class));
-        assertNotNull(getDs().get(FacebookUser.class, 1));
+        assertNotNull(getDs().get(FacebookUser.class, id));
         assertNotNull(getDs().exists(k));
-        assertNotNull(((AdvancedDatastore) getDs()).exists(k, ReadPreference.secondary()));
-        assertNotNull(((AdvancedDatastore) getDs()).exists(k, ReadPreference.secondaryPreferred()));
-        assertNotNull(((AdvancedDatastore) getDs()).exists(k, ReadPreference.nearest()));
-        assertNotNull(getDs().getByKey(FacebookUser.class, k));
-        getDs().delete(getDs().find(FacebookUser.class));
-        assertEquals(0, getDs().getCount(FacebookUser.class));
-        assertNull(getDs().exists(k));
+        
+        List<FacebookUser> users = getDs().createQuery(FacebookUser.class).asList();
 
+        assertNotNull("Should exist when using secondaryPreferred", getAds().exists(k, ReadPreference.secondaryPreferred()));
+        ReplicaSetStatus replicaSetStatus = getMongo().getReplicaSetStatus();
+        if (replicaSetStatus != null) {
+            assertNotNull("Should exist when using secondary", getAds().exists(k, ReadPreference.secondary()));
+        }
+        assertNotNull("Should exist when using nearest", getAds().exists(k, ReadPreference.nearest()));
+
+        assertNotNull("Should be able to getByKey()", getDs().getByKey(FacebookUser.class, k));
+        getDs().delete(getDs().find(FacebookUser.class));
+        assertEquals("Should be no more users", 0, getDs().getCount(FacebookUser.class));
+        assertNull("Shouldn't exist after delete", getDs().exists(k));
     }
 
     @Test

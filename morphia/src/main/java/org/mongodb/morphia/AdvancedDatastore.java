@@ -80,10 +80,19 @@ public interface AdvancedDatastore extends Datastore {
 
   <T> Iterable<Key<T>> insert(String kind, Iterable<T> entities, WriteConcern wc);
 
-
+  /**
+   * @param kind the name of the collection that should be queried
+   * @param clazz the class of objects to be returned
+   * @return Query for the specified class clazz
+   */
   <T> Query<T> createQuery(String kind, Class<T> clazz);
 
-  //DBObject implementations; in case we don't have features implemented yet
+  /**
+   * 
+   * @param kind the class of objects to be returned
+   * @param q the query which will be passed to a {@link QueryFactory}
+   * @return Query for the specified class clazz
+   */
   <T> Query<T> createQuery(Class<T> kind, DBObject q);
 
   <T> Query<T> createQuery(String kind, Class<T> clazz, DBObject q);
@@ -99,5 +108,33 @@ public interface AdvancedDatastore extends Datastore {
   DBDecoderFactory setDecoderFact(DBDecoderFactory fact);
 
   DBDecoderFactory getDecoderFact();
+
+  /**
+   * Ensures (creating if necessary) the indexes found during class mapping
+   * (using {@code @Indexed, @Indexes)} on the given collection name.
+   */
+  <T> void ensureIndexes(String collName, Class<T> clazz);
+
+  /**
+   * Ensures (creating if necessary) the indexes found during class mapping
+   * (using {@code @Indexed, @Indexes)} on the given collection name, possibly
+   * in the background
+   */
+  <T> void ensureIndexes(String collName, Class<T> clazz, boolean background);
+
+  /**
+   * Ensures (creating if necessary) the index including the field(s) +
+   * directions on the given collection name; eg fields = "field1, -field2"
+   * ({field1:1, field2:-1})
+   */
+  <T> void ensureIndex(String collName, Class<T> clazz, String fields);
+
+  /**
+   * Ensures (creating if necessary) the index including the field(s) +
+   * directions on the given collection name; eg fields = "field1, -field2"
+   * ({field1:1, field2:-1})
+   */
+  <T> void ensureIndex(String collName, Class<T> clazz, String name,
+      String fields, boolean unique, boolean dropDupsOnCreate);
 
 }

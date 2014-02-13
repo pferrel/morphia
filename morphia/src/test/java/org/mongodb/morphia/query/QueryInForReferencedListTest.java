@@ -55,9 +55,8 @@ public class QueryInForReferencedListTest extends TestBase {
     }
 
     @Test
-//    @Ignore("what needs to happen is that when we're querying against @Referenced entities and we pass in an Entity, we need to"
-//            + " convert those to DBRefs when building the query.")
     public void testInQuery() throws Exception {
+        checkMinServerVersion(2.5);
         final HasRefs hr = new HasRefs();
         for (int x = 0; x < 10; x++) {
             final ReferencedEntity re = new ReferencedEntity("" + x);

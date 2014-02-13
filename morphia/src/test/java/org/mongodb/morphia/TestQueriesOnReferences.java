@@ -7,10 +7,12 @@ import org.junit.Test;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Reference;
+import org.mongodb.morphia.mapping.MappingException;
 import org.mongodb.morphia.query.Query;
 
+import java.util.List;
 
-//@Ignore //https://github.com/mongodb/morphia/issues/62
+
 public class TestQueriesOnReferences extends TestBase {
     @Entity
     public static class ContainsPic {
@@ -80,6 +82,34 @@ public class TestQueriesOnReferences extends TestBase {
         Assert.assertNotNull(query.field("lazyObjectIdPic")
                                   .equal(withObjectId)
                                   .get());
+    }
+    
+    @Test
+    public void testWithKeyQuery() {
+        final ContainsPic cpk = new ContainsPic();
+        final Pic p = new Pic();
+        cpk.pic = p;
+        getDs().save(p);
+        getDs().save(cpk);
+
+        ContainsPic containsPic = getDs().createQuery(ContainsPic.class).field("pic").equal(new Key<Pic>(Pic.class, p.id)).get();
+        Assert.assertEquals(cpk.id, containsPic.id);
+        
+        containsPic = getDs().createQuery(ContainsPic.class).field("pic").equal(new Key<Pic>("Pic", p.id)).get();
+        Assert.assertEquals(cpk.id, containsPic.id);
+    }
+    
+    @Test(expected = MappingException.class)
+    public void testMissingReferences() {
+        final ContainsPic cpk = new ContainsPic();
+        final Pic p = new Pic();
+        cpk.pic = p;
+        getDs().save(p);
+        getDs().save(cpk);
+
+        getDs().delete(p);
+
+        List<ContainsPic> list = getDs().createQuery(ContainsPic.class).asList();
     }
 }
 
